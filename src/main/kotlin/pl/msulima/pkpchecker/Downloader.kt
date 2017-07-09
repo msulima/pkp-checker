@@ -9,16 +9,16 @@ import java.nio.file.StandardCopyOption
 import java.time.LocalDateTime
 import java.time.ZoneId
 
-fun fetchStation(id: Int): File {
+fun fetchStation(id: Int, databaseDirectory: File): File {
     val now = LocalDateTime.now(ZoneId.of("UTC"))
-    val output = File("database/station/date=${now.toLocalDate()}/hour=${now.hour}/$id.html")
+    val output = File(databaseDirectory, "station/date=${now.toLocalDate()}/hour=${now.hour}/$id.html")
     val url = URL("https://infopasazer.intercity.pl/?p=station&id=$id")
 
     return getOrDownload(output, url)
 }
 
-fun fetchTrain(id: Int, url: URL): File {
-    val completed = File("database/train/completed/$id.html")
+fun fetchTrain(id: Int, url: URL, databaseDirectory: File): File {
+    val completed = File(databaseDirectory, "train/completed/$id.html")
 
     if (completed.exists()) {
         return completed
@@ -26,7 +26,7 @@ fun fetchTrain(id: Int, url: URL): File {
 
     val now = LocalDateTime.now(ZoneId.of("UTC"))
     val quarter = now.minute / 15
-    val pending = File("database/train/pending/date=${now.toLocalDate()}/hour=${now.hour}/quarter=$quarter/$id.html")
+    val pending = File(databaseDirectory, "train/pending/date=${now.toLocalDate()}/hour=${now.hour}/quarter=$quarter/$id.html")
     return getOrDownload(pending, url)
 }
 
