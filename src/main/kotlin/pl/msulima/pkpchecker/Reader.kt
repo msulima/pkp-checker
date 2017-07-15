@@ -30,7 +30,7 @@ fun readTrains(file: File): List<Train> {
 
 fun readStatisticsForTrain(train: Train, file: File): TrainStatistics {
     val rows = Jsoup
-            .parse(file, "UTF-8", "https://infopasazer.intercity.pl/?p=train&id=48534177")
+            .parse(file, "UTF-8", train.url.toString())
             .select("table.table-delay tbody tr")
 
     val stops = rows

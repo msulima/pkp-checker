@@ -19,6 +19,7 @@ repositories {
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
 
+    compile 'commons-cli:commons-cli:1.4'
     compile 'org.jsoup:jsoup:1.10.3'
 //    testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
 }
