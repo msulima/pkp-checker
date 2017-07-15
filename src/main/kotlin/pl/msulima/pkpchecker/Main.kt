@@ -38,13 +38,21 @@ fun main(args: Array<String>) {
     val databaseDirectory = File(line.getOptionValue(DatabaseDirectory, "./database"))
     val summarize = line.hasOption(Summarize);
 
-    findCompletedAndSave(stations, databaseDirectory)
-            .filter { it.completed }
-            .forEach { println(Pair(it.stops.last().arrivalDelay, it)) }
+    if (summarize) {
+        summarize(databaseDirectory)
+                .forEach { printTrainStatistics(it) }
+    } else {
+        findCompletedAndSave(stations, databaseDirectory)
+                .forEach { printTrainStatistics(it) }
+    }
 }
 
-private fun summarize(databaseDirectory: File) {
-    readAllCompleted(databaseDirectory)
+private fun summarize(databaseDirectory: File): List<TrainStatistics> {
+    return readAllCompleted(databaseDirectory)
+            .map { readStatisticsForTrain(it) }
+            .filterNotNull()
+            .sortedBy { -it.stops.last().arrivalDelay }
+            .take(30)
 }
 
 private fun findCompletedAndSave(stationIds: Set<Int>, databaseDirectory: File): List<TrainStatistics> {
@@ -54,15 +62,23 @@ private fun findCompletedAndSave(stationIds: Set<Int>, databaseDirectory: File):
             }
             .distinctBy { it.id }
             .map { processTrain(it, databaseDirectory) }
+            .filterNotNull()
 }
 
-private fun processTrain(train: Train, databaseDirectory: File): TrainStatistics {
+private fun processTrain(train: Train, databaseDirectory: File): TrainStatistics? {
     val file = fetchTrain(train.id, train.url, databaseDirectory)
-    val maybeStatistics = readStatisticsForTrain(train, file)
+    val maybeStatistics = readStatisticsForTrain(file)
 
-    if (maybeStatistics.completed || maybeStatistics.stops.isEmpty()) {
+    if (maybeStatistics != null && maybeStatistics.completed) {
         saveCompleted(train.id, file, databaseDirectory)
     }
 
     return maybeStatistics
+}
+
+private fun printTrainStatistics(trainStatistics: TrainStatistics) {
+    val first = trainStatistics.stops.first()
+    val last = trainStatistics.stops.last()
+
+    println("${last.arrivalDelay}\t${first.station} - ${last.station}\t${trainStatistics.train}\t${trainStatistics.date}")
 }
