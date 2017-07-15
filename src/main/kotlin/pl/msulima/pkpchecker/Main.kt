@@ -32,7 +32,7 @@ private fun processTrain(train: Train, databaseDirectory: File): TrainStatistics
     val maybeStatistics = readStatisticsForTrain(train, file)
 
     if (maybeStatistics.completed || maybeStatistics.stops.isEmpty()) {
-        saveCompleted(train.id, file)
+        saveCompleted(train.id, file, databaseDirectory)
     }
 
     return maybeStatistics

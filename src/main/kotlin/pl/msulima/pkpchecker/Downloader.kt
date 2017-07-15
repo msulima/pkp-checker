@@ -47,8 +47,8 @@ private fun getOrDownload(output: File, url: URL): File {
     return output
 }
 
-fun saveCompleted(id: Int, pending: File) {
-    val completed = File("database/train/completed/$id.html")
+fun saveCompleted(id: Int, pending: File, databaseDirectory: File) {
+    val completed = File(databaseDirectory, "train/completed/$id.html")
     completed.parentFile.mkdirs()
 
     Files.move(pending.toPath(), completed.toPath(), StandardCopyOption.REPLACE_EXISTING)
