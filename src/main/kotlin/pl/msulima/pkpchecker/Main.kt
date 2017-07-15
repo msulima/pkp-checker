@@ -39,8 +39,15 @@ fun main(args: Array<String>) {
     val summarize = line.hasOption(Summarize);
 
     if (summarize) {
-        summarize(databaseDirectory)
+        val completed = summarize(databaseDirectory)
+
+        completed
+                .sortedBy { -it.stops.last().arrivalDelay }
                 .take(30)
+                .forEach { printTrainStatistics(it) }
+
+        println("---")
+        findOnTrack(completed, "Katowice", "Warszawa Centralna")
                 .forEach { printTrainStatistics(it) }
     } else {
         findCompletedAndSave(stations, databaseDirectory)
