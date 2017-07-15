@@ -40,19 +40,12 @@ fun main(args: Array<String>) {
 
     if (summarize) {
         summarize(databaseDirectory)
+                .take(30)
                 .forEach { printTrainStatistics(it) }
     } else {
         findCompletedAndSave(stations, databaseDirectory)
                 .forEach { printTrainStatistics(it) }
     }
-}
-
-private fun summarize(databaseDirectory: File): List<TrainStatistics> {
-    return readAllCompleted(databaseDirectory)
-            .map { readStatisticsForTrain(it) }
-            .filterNotNull()
-            .sortedBy { -it.stops.last().arrivalDelay }
-            .take(30)
 }
 
 private fun findCompletedAndSave(stationIds: Set<Int>, databaseDirectory: File): List<TrainStatistics> {
