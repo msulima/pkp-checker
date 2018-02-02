@@ -1,6 +1,7 @@
 package pl.msulima.pkpchecker
 
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 import java.io.File
 import java.net.URL
 import java.time.LocalDate
@@ -15,7 +16,7 @@ fun readTrains(file: File): List<Train> {
     val table = doc.select("table.table-delay")[0]
     val elements = table.select("tbody tr")
 
-    val trains = elements.map { element ->
+    return elements.map { element ->
         val url = element.select("td:nth-child(1) a").attr("abs:href")
         val id = element.select("td:nth-child(1) a").attr("href").substring("?p=train&id=".length).toInt()
         val name = element.select("td:nth-child(1) a").text()
@@ -24,8 +25,6 @@ fun readTrains(file: File): List<Train> {
 
         Train(id, name, relation, vendor, URL(url))
     }
-
-    return trains
 }
 
 private val DateParser: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -44,17 +43,19 @@ fun readStatisticsForTrain(file: File): TrainStatistics? {
 
     val stops = rows
             .takeWhile { !it.hasClass("current") }
-            .map { stop ->
-                val station = stop.select("td:nth-child(4) a").text()
-                val arrivalDelay = stop.select("td:nth-child(6) span").text()
-                val departureDelay = stop.select("td:nth-child(8) span").text()
-
-                Stop(station, timeStringToInt(arrivalDelay), timeStringToInt(departureDelay))
-            }
+            .map { readStop(it) }
 
     val completed = rows.size == stops.size
 
     return TrainStatistics(name, completed, date, stops)
+}
+
+private fun readStop(stop: Element): Stop {
+    val station = stop.select("td:nth-child(4) a").text()
+    val arrivalDelay = stop.select("td:nth-child(6) span").text()
+    val departureDelay = stop.select("td:nth-child(8) span").text()
+
+    return Stop(station, timeStringToInt(arrivalDelay), timeStringToInt(departureDelay))
 }
 
 private fun timeStringToInt(time: String): Int {

@@ -3,13 +3,22 @@ package pl.msulima.pkpchecker
 import java.io.File
 
 
-fun summarize(databaseDirectory: File): List<TrainStatistics> {
+fun printSummary(databaseDirectory: File): Unit {
     val completed = readAllCompleted(databaseDirectory)
-            .map { readStatisticsForTrain(it) }
-            .filterNotNull()
+            .mapNotNull { readStatisticsForTrain(it) }
 
+    completed
+            .sortedBy { -it.stops.last().arrivalDelay }
+            .take(30)
+            .forEach { printTrainStatistics(it) }
 
-    return completed
+    println("---")
+    val onTrack = findOnTrack(completed, "Katowice", "Warszawa Centralna")
+            .sortedBy { -it.stops.last().arrivalDelay }
+
+    println("Average: ${onTrack.sumBy { it.stops.last().arrivalDelay }.toDouble() / onTrack.size}")
+    println("75th p: ${onTrack[(onTrack.size * 0.25).toInt()].stops.last().arrivalDelay}")
+    println("90th p: ${onTrack[(onTrack.size * 0.10).toInt()].stops.last().arrivalDelay}")
 }
 
 fun findOnTrack(completed: List<TrainStatistics>, firstStation: String, secondStation: String): List<TrainStatistics> {

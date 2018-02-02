@@ -14,6 +14,7 @@ private val stations = setOf(
 
 private val DatabaseDirectory = "database-dir"
 private val Summarize = "summarize"
+private val DefaultDatabaseDirectory = "./database"
 
 private val options: Options = Options()
         .addOption(Option.builder("d")
@@ -35,48 +36,24 @@ fun main(args: Array<String>) {
     val parser = DefaultParser()
     val line = parser.parse(options, args)
 
-    val databaseDirectory = File(line.getOptionValue(DatabaseDirectory, "./database"))
+    val databaseDirectory = File(line.getOptionValue(DatabaseDirectory, DefaultDatabaseDirectory))
     val summarize = line.hasOption(Summarize);
 
     if (summarize) {
-        val completed = summarize(databaseDirectory)
-
-        completed
-                .sortedBy { -it.stops.last().arrivalDelay }
-                .take(30)
-                .forEach { printTrainStatistics(it) }
-
-        println("---")
-        findOnTrack(completed, "Katowice", "Warszawa Centralna")
-                .forEach { printTrainStatistics(it) }
+        printSummary(databaseDirectory)
     } else {
-        findCompletedAndSave(stations, databaseDirectory)
-                .forEach { printTrainStatistics(it) }
-    }
-}
+        val fetcher = Fetcher(stationIds = stations, intervalInMinutes = 15, databaseDirectory = databaseDirectory)
+        fetcher.start()
 
-private fun findCompletedAndSave(stationIds: Set<Int>, databaseDirectory: File): List<TrainStatistics> {
-    return stationIds
-            .flatMap { station ->
-                readTrains(fetchStation(station, databaseDirectory))
+        Runtime.getRuntime().addShutdownHook(object : Thread() {
+            override fun run() {
+                fetcher.stop()
             }
-            .distinctBy { it.id }
-            .map { processTrain(it, databaseDirectory) }
-            .filterNotNull()
-}
-
-private fun processTrain(train: Train, databaseDirectory: File): TrainStatistics? {
-    val file = fetchTrain(train.id, train.url, databaseDirectory)
-    val maybeStatistics = readStatisticsForTrain(file)
-
-    if (maybeStatistics != null && maybeStatistics.completed) {
-        saveCompleted(train.id, file, databaseDirectory)
+        })
     }
-
-    return maybeStatistics
 }
 
-private fun printTrainStatistics(trainStatistics: TrainStatistics) {
+fun printTrainStatistics(trainStatistics: TrainStatistics) {
     val first = trainStatistics.stops.first()
     val last = trainStatistics.stops.last()
 
