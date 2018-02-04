@@ -1,5 +1,11 @@
 # pkp-checker
 
+Because I had a feeling that 3/4 of my trains are late, I decided to verify it basing on real data.
+Unfortunately PKP does not have any API, especially with historical data.
+The only way to get data on current schedule of trains is [https://infopasazer.intercity.pl/](https://infopasazer.intercity.pl/).
+This project extracts data of trains going via some popular stations like Warsaw or Katowice.
+Data is can be later analyzed and average delay, 75th, 90th percentile are calculated.
+
 ## Run
 
 ```bash
